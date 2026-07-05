@@ -6,6 +6,7 @@ const cors = require("cors");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 const rateLimit = require("express-rate-limit");
+const reviewRoutes = require("./routes/review.routes");
 
 const connectDB = require("./config/db");
 
@@ -15,6 +16,8 @@ const authMiddleware = require("./middleware/auth.middleware");
 const asyncHandler = require("./utils/asyncHandler");
 
 const User = require("./models/user.model");
+const listingRoutes = require("./routes/listing.routes");
+
 
 const { error } = require("./utils/response");
 
@@ -46,6 +49,8 @@ const authLimiter = rateLimit({
 
 app.use("/api/v1/auth", authLimiter);
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/listings", listingRoutes);
+app.use("/api/v1/reviews", reviewRoutes);
 
 app.get(
   "/api/v1/profile",
@@ -62,6 +67,7 @@ app.get(
       data: {
         userId: user._id,
         username: user.username,
+        elo:user.elo,
       },
     });
   })
