@@ -1,0 +1,36 @@
+import { Request, Response, NextFunction } from "express";
+import jwt, { JwtPayload } from "jsonwebtoken";
+
+import { error } from "../utils/response";
+
+const authMiddleware = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
+        return error(res, 401, "No Token");
+    }
+
+    const accessToken = authHeader.split(" ")[1];
+
+    try {
+        const decoded = jwt.verify(
+            accessToken,
+            process.env.ACCESS_TOKEN_SECRET!
+        ) as JwtPayload & {
+            userId: string;
+        };
+
+        (req as any).user = decoded;
+        (req as any).userId = decoded.userId;
+
+        next();
+    } catch {
+        return error(res, 403, "Invalid Token");
+    }
+};
+
+export default authMiddleware;
