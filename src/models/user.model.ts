@@ -13,6 +13,7 @@ export interface IUser extends Document {
     refreshMeta: IRefreshMeta | null;
 
     elo: number;
+    isAdmin : boolean;
 }
 
 interface IUserModel extends Model<IUser> {
@@ -52,6 +53,11 @@ const userSchema = new Schema<IUser, IUserModel>(
         elo: {
             type: Number,
             default: 1000,
+        },
+
+        isAdmin: {
+            type: Boolean,
+            default: false,
         },
     },
     {

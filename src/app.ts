@@ -14,6 +14,7 @@ import cookieParser from "cookie-parser";
 import rateLimit from "express-rate-limit";
 
 import connectDB from "./config/db";
+import escrowRoutes from "./escrow/escrow.routes";
 
 import authRoutes from "./routes/auth.routes";
 import listingRoutes from "./routes/listing.routes";
@@ -25,7 +26,8 @@ import asyncHandler from "./utils/asyncHandler";
 import User from "./models/user.model";
 
 import { error } from "./utils/response";
-
+import internalAuthMiddleware from "./middleware/internal-auth.middleware";
+import internalroutes from "./escrow/internal.routes";
 const app = express();
 
 connectDB();
@@ -58,6 +60,9 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/listings", listingRoutes);
 
 app.use("/api/v1/reviews", reviewRoutes);
+app.use("/api/v1/escrow",escrowRoutes);
+app.use("/api/v1/internal/escrow",internalroutes);
+
 
 app.get(
     "/api/v1/profile",
