@@ -28,10 +28,11 @@ import User from "./models/user.model";
 import { error } from "./utils/response";
 import internalAuthMiddleware from "./middleware/internal-auth.middleware";
 import internalroutes from "./escrow/internal.routes";
+import { startEscrowExpiryJob } from "./escrow/escrow.cron";
 const app = express();
 
 connectDB();
-
+startEscrowExpiryJob();
 app.use(helmet());
 
 app.use(
