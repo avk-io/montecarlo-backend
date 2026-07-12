@@ -40,6 +40,58 @@ export const getThread = async (req: AuthRequest, res: Response) => {
   }
 };
 
+export const deleteThread = async (req: AuthRequest, res: Response) => {
+  try {
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const threadId = new mongoose.Types.ObjectId(id);
+
+    const thread = await Thread.findById(threadId);
+    if (!thread) {
+      return error(res, 404, 'Thread not found');
+    }
+
+    if (thread.author.toString() !== req.userId) {
+      return error(res, 403, 'Not authorized');
+    }
+
+    await Thread.findByIdAndDelete(threadId);
+    await Reply.deleteMany({ thread: threadId });
+
+    return success(res, { msg: 'Thread deleted' });
+  } catch (err: any) {
+    return error(res, 500, err.message);
+  }
+};
+
+export const deleteReply = async (req: AuthRequest, res: Response) => {
+  try {
+    const replyIdParam = Array.isArray(req.params.replyId) ? req.params.replyId[0] : req.params.replyId;
+    const replyId = new mongoose.Types.ObjectId(replyIdParam);
+
+    const reply = await Reply.findById(replyId);
+    if (!reply) {
+      return error(res, 404, 'Reply not found');
+    }
+
+    if (reply.author.toString() !== req.userId) {
+      return error(res, 403, 'Not authorized');
+    }
+
+    await Reply.findByIdAndDelete(replyId);
+
+    // Update thread reply count
+    const thread = await Thread.findById(reply.thread);
+    if (thread) {
+      thread.replies -= 1;
+      await thread.save();
+    }
+
+    return success(res, { msg: 'Reply deleted' });
+  } catch (err: any) {
+    return error(res, 500, err.message);
+  }
+};
+
 export const createThread = async (req: AuthRequest, res: Response) => {
   try {
     const { title, content } = req.body;
