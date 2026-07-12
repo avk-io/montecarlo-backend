@@ -22,6 +22,8 @@ import reviewRoutes from "./routes/review.routes";
 
 import authMiddleware from "./middleware/auth.middleware";
 import asyncHandler from "./utils/asyncHandler";
+import forumRoutes from './routes/forum.routes';
+
 
 import User from "./models/user.model";
 
@@ -63,6 +65,8 @@ app.use("/api/v1/listings", listingRoutes);
 app.use("/api/v1/reviews", reviewRoutes);
 app.use("/api/v1/escrow",escrowRoutes);
 app.use("/api/v1/internal/escrow",internalroutes);
+app.use('/api/v1/forum', forumRoutes);
+
 
 
 app.get(
