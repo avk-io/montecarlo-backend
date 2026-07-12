@@ -1,53 +1,53 @@
-import { Schema, model, Types, Document } from "mongoose";
+import mongoose, { Schema, Document } from 'mongoose';
 
-export interface IListing extends Document {
-    title: string;
-    description: string;
-    price: number;
-    category: string;
-    seller: Types.ObjectId;
-
-    createdAt: Date;
-    updatedAt: Date;
+interface IListing extends Document {
+  title: string;
+  description: string;
+  price: number;
+  category: string;
+  seller: mongoose.Types.ObjectId;
+  image: string; // single image, base64
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-const listingSchema = new Schema<IListing>(
-    {
-        title: {
-            type: String,
-            required: true,
-            trim: true,
-        },
+const listingSchema = new Schema<IListing>({
+  title: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  description: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  price: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  category: {
+    type: String,
+    required: true
+  },
+  seller: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+    required: true
+  },
+  image: {
+    type: String,
+    default: null
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
+  }
+}, { timestamps: true });
 
-        description: {
-            type: String,
-            required: true,
-            trim: true,
-        },
-
-        price: {
-            type: Number,
-            required: true,
-            min: 0,
-        },
-
-        category: {
-            type: String,
-            required: true,
-            trim: true,
-        },
-
-        seller: {
-            type: Schema.Types.ObjectId,
-            ref: "User",
-            required: true,
-        },
-    },
-    {
-        timestamps: true,
-    }
-);
-
-const Listing = model<IListing>("Listing", listingSchema);
-
-export default Listing;
+export default mongoose.model<IListing>("Listing", listingSchema);

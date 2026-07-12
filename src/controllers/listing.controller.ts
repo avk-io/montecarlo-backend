@@ -1,10 +1,12 @@
-import { Request, Response } from "express";
+import { Request, Response } from 'express';
+import mongoose from 'mongoose';
+import Listing from '../models/listing.model';
+import User from '../models/user.model';
+import { success, error } from '../utils/response';
 
-import User from "../models/user.model";
-import Listing from "../models/listing.model";
-
-import { success, error } from "../utils/response";
-import asyncHandler from "../utils/asyncHandler";
+interface AuthRequest extends Request {
+  userId?: string;
+}
 
 export const getListings = (
     async (req: Request, res: Response) => {
@@ -29,28 +31,34 @@ export const getListing = (
     }
 );
 
-export const createListing = (
-    async (req: Request, res: Response) => {
-        const user = await User.findById((req as any).userId);
+export const createListing = async (req: AuthRequest, res: Response) => {
+  try {
+    const { title, description, price, category, image } = req.body;
 
-        if (!user) {
-            return error(res, 404, "User not found");
-        }
-
-        const { title, description, price, category } = req.body;
-
-        const listing = await Listing.create({
-            title,
-            description,
-            price,
-            category,
-            seller: (req as any).userId,
-        });
-
-        return success(res, listing);
+    if (!title || !description || !price || !category) {
+      return error(res, 400, 'Missing required fields');
     }
-);
 
+    // Validate image if provided (max 5MB)
+    if (image && image.length > 5242880) {
+      return error(res, 400, 'Image too large (max 5MB)');
+    }
+
+    const listing = await Listing.create({
+      title,
+      description,
+      price,
+      category,
+      seller: req.userId,
+      image: image || null
+    });
+
+    await listing.populate('seller', 'username elo');
+    return success(res, listing);
+  } catch (err: any) {
+    return error(res, 500, err.message);
+  }
+};
 export const deleteListing = (
     async (req: Request, res: Response) => {
         const listing = await Listing.findById(req.params.id);
