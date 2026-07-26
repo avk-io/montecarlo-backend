@@ -1,33 +1,40 @@
 import { Router } from "express";
-import { createEscrowController, transitionEscrowController } from "./escrow.controller";
+import { createEscrowController, transitionEscrowController, getMyEscrowsController, getEscrowController } from "./escrow.controller";
 import authMiddleware from "../middleware/auth.middleware";
 import isAdminMiddleware from "../middleware/isAdmin.middleware";
-import {triggerPayout} from "./escrow.payout.controller";
-import {getMyEscrowsController} from "./escrow.controller"
+import { triggerPayout } from "./escrow.payout.controller";
+
 const router = Router();
 
 router.post(
-    "/",
-    authMiddleware,
-    createEscrowController
-);
-
-router.patch(
-    "/:id/transition",
-    authMiddleware,
-    transitionEscrowController
-);
-
-router.post(
-    "/:id/payout",
-    authMiddleware,
-    isAdminMiddleware,
-    triggerPayout
+  "/",
+  authMiddleware,
+  createEscrowController
 );
 
 router.get(
-    "/mine",
-    authMiddleware,
-    getMyEscrowsController,
-)
+  "/mine",
+  authMiddleware,
+  getMyEscrowsController
+);
+
+router.get(
+  "/:id",
+  authMiddleware,
+  getEscrowController
+);
+
+router.patch(
+  "/:id/transition",
+  authMiddleware,
+  transitionEscrowController
+);
+
+router.post(
+  "/:id/payout",
+  authMiddleware,
+  isAdminMiddleware,
+  triggerPayout
+);
+
 export default router;

@@ -11,6 +11,8 @@ import { success, error } from "../utils/response";
 import { Actor } from "./actor";
 import Review from "../models/review.model";
 import {getMyEscrows} from "./escrow.service"
+import mongoose from "mongoose";
+import Escrow from "./escrow.model";
 
 interface CreateEscrowBody {
     listingId: string;
@@ -114,3 +116,26 @@ export async function getMyEscrowsController(req:Request,res:Response){
         return error(res,400,err.message || "Failed to fetch escrows");
     }
 }
+
+export const getEscrowController = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).userId;
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const escrowId = new mongoose.Types.ObjectId(id);
+
+    const escrow = await Escrow.findById(escrowId);
+    
+    if (!escrow) {
+      return error(res, 404, "Escrow not found");
+    }
+
+    // Verify user is buyer or seller
+    if (escrow.buyerId.toString() !== userId && escrow.sellerId.toString() !== userId) {
+      return error(res, 403, "Not authorized");
+    }
+
+    return success(res, escrow);
+  } catch (err: any) {
+    return error(res, 500, err.message);
+  }
+};
