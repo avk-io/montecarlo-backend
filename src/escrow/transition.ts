@@ -9,6 +9,7 @@ export const transistions: Record<EscrowState, EscrowState[]> = {
         EscrowState.FUNDED,
         EscrowState.CANCELLED,
         EscrowState.EXPIRED,
+        EscrowState.REFUNDED,
     ],
 
     [EscrowState.FUNDED]: [

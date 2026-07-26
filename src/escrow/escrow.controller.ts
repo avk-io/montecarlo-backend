@@ -10,6 +10,7 @@ import {
 import { success, error } from "../utils/response";
 import { Actor } from "./actor";
 import Review from "../models/review.model";
+import {getMyEscrows} from "./escrow.service"
 
 interface CreateEscrowBody {
     listingId: string;
@@ -101,5 +102,15 @@ export async function walletTransitionController(
             400,
             err.message || "Wallet transition failed"
         );
+    }
+}
+
+export async function getMyEscrowsController(req:Request,res:Response){
+    try{
+        const userId = (req as any).userId;
+        const escrows = await getMyEscrows(userId);
+        return success(res,escrows);
+    }catch(err:any){
+        return error(res,400,err.message || "Failed to fetch escrows");
     }
 }

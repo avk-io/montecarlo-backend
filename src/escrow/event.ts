@@ -11,6 +11,7 @@ export enum EscrowEvent {
     DISPUTE_RAISED = "DISPUTE_RAISED",
     DISPUTE_REFUNDED = "DISPUTE_REFUNDED",
     DISPUTE_RELEASED = "DISPUTE_RELEASED",
+    PAYMENT_REFUNDED = "PAYMENT_REFUNDED",
 }
 
 type TransitionKey = `${EscrowState}->${EscrowState}`;
@@ -46,4 +47,7 @@ export const eventMap: Partial<Record<TransitionKey, EscrowEvent>> = {
 
     [`${EscrowState.DISPUTED}->${EscrowState.RELEASED}`]:
         EscrowEvent.DISPUTE_RELEASED,
+
+    [`${EscrowState.WAITING_FOR_PAYMENT}->${EscrowState.REFUNDED}`]:
+        EscrowEvent.PAYMENT_REFUNDED,
 };

@@ -12,6 +12,8 @@ export interface IUser extends Document {
     refreshTokenHash: string | null;
     refreshMeta: IRefreshMeta | null;
 
+    payoutAddress: string|null;
+
     elo: number;
     isAdmin : boolean;
 }
@@ -58,6 +60,12 @@ const userSchema = new Schema<IUser, IUserModel>(
         isAdmin: {
             type: Boolean,
             default: false,
+        },
+        
+        payoutAddress:{
+            type:String,
+            required: false,
+            default: null,
         },
     },
     {

@@ -23,8 +23,9 @@ import reviewRoutes from "./routes/review.routes";
 import authMiddleware from "./middleware/auth.middleware";
 import asyncHandler from "./utils/asyncHandler";
 import forumRoutes from './routes/forum.routes';
+import {startEscrowPaymentDetectionJob} from "./escrow/escrow.wallet.cron";
 
-
+import userRoutes from "./routes/user.routes";
 import User from "./models/user.model";
 
 import { error } from "./utils/response";
@@ -35,6 +36,7 @@ const app = express();
 
 connectDB();
 startEscrowExpiryJob();
+startEscrowPaymentDetectionJob();
 app.use(helmet());
 
 app.use(
@@ -47,6 +49,8 @@ app.use(
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(cookieParser());
+app.use("/api/v1/users",userRoutes);
+
 
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,

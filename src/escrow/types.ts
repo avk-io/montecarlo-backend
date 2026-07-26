@@ -21,6 +21,12 @@ export interface EscrowOrder {
     sellerId: Types.ObjectId;
 
     amount: number;
+    depositAddress: string;
+    depositAddressIndex: number;
+    payoutTxHash: string | null;
+
+    createdAt:Date;
+    updatedAt : Date;
 
     state: EscrowState;
     history: HistoryEntry[];

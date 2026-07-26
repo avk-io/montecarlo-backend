@@ -34,4 +34,7 @@ export const permissions: Partial<Record<TransitionKey, Actor[]>> = {
 
     [`${EscrowState.DISPUTED}->${EscrowState.RELEASED}`]:
         [Actor.ADMIN],
+        
+    [`${EscrowState.WAITING_FOR_PAYMENT}->${EscrowState.REFUNDED}`]:
+        [Actor.ADMIN],
 };

@@ -65,6 +65,22 @@ const escrowSchema = new Schema<IEscrow>(
       type: [historySchema],
       default: [],
     },
+
+    depositAddress: {
+      type: String,
+      required:true,
+    },
+
+    depositAddressIndex:{
+      type: Number,
+      required:true,
+    },
+
+    payoutTxHash: {
+      type:String,
+      required:false,
+      default:null,
+    }
   },
   {
     timestamps: true,
