@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import { EscrowState } from "./state";
 import {
     createEscrow,
+    getFlaggedEscrows,
     transitionEscrow,
     transitionEscrowInternal
 } from "./escrow.service";
@@ -13,6 +14,7 @@ import Review from "../models/review.model";
 import {getMyEscrows} from "./escrow.service"
 import mongoose from "mongoose";
 import Escrow from "./escrow.model";
+import User from "../models/user.model";
 
 interface CreateEscrowBody {
     listingId: string;
@@ -116,26 +118,46 @@ export async function getMyEscrowsController(req:Request,res:Response){
         return error(res,400,err.message || "Failed to fetch escrows");
     }
 }
+export const getEscrowController = async (
+    req: Request<{ id: string }>,
+    res: Response
+) => {
+    try {
+        const userId = (req as any).userId;
 
-export const getEscrowController = async (req: Request, res: Response) => {
-  try {
-    const userId = (req as any).userId;
-    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-    const escrowId = new mongoose.Types.ObjectId(id);
+        const escrow = await Escrow.findById(req.params.id);
 
-    const escrow = await Escrow.findById(escrowId);
-    
-    if (!escrow) {
-      return error(res, 404, "Escrow not found");
+        if (!escrow) {
+            return error(res, 404, "Escrow not found");
+        }
+
+        const isBuyer = escrow.buyerId.toString() === userId;
+        const isSeller = escrow.sellerId.toString() === userId;
+
+        if (!isBuyer && !isSeller) {
+            const user = await User.findById(userId);
+
+            if (!user?.isAdmin) {
+                return error(
+                    res,
+                    403,
+                    `User ${userId} cannot access escrow ${escrow._id}: no relationship to this order`
+                );
+            }
+        }
+
+        return success(res, escrow);
+    } catch (err: any) {
+        return error(res, 400, err.message || "Failed to fetch escrow");
     }
-
-    // Verify user is buyer or seller
-    if (escrow.buyerId.toString() !== userId && escrow.sellerId.toString() !== userId) {
-      return error(res, 403, "Not authorized");
-    }
-
-    return success(res, escrow);
-  } catch (err: any) {
-    return error(res, 500, err.message);
-  }
 };
+
+export async function getFlaggedEscrowsController(req: Request, res: Response) {
+    try {
+        const flagged = await getFlaggedEscrows();
+        return success(res, flagged);
+    } catch (err: any) {
+        return error(res, 400, err.message || "Failed to fetch flagged escrows");
+    }
+}
+

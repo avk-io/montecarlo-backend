@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createEscrowController, transitionEscrowController, getMyEscrowsController, getEscrowController } from "./escrow.controller";
+import { createEscrowController, transitionEscrowController, getMyEscrowsController, getEscrowController, getFlaggedEscrowsController } from "./escrow.controller";
 import authMiddleware from "../middleware/auth.middleware";
 import isAdminMiddleware from "../middleware/isAdmin.middleware";
 import { triggerPayout } from "./escrow.payout.controller";
@@ -35,6 +35,13 @@ router.post(
   authMiddleware,
   isAdminMiddleware,
   triggerPayout
+);
+
+router.get(
+    "/admin/flagged",
+    authMiddleware,
+    isAdminMiddleware,
+    getFlaggedEscrowsController
 );
 
 export default router;

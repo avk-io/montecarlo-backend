@@ -5,7 +5,7 @@ import { EscrowState } from "./state";
 import mongoose from "mongoose";
 import { ForbiddenActorError } from "./errors";
 import User from "../models/user.model";
-import { createEscrowSubaddress } from "./escrow.wallet.service";
+import { createEscrowSubaddress, getSubaddressBalance } from "./escrow.wallet.service";
 
 const engine = new EscrowEngine();
 // escrow.service.ts — updated createEscrow only. transitionEscrow,
@@ -136,4 +136,57 @@ export async function getMyEscrows(userId:string){
     return Escrow.find({
         $or: [{buyerId: userId}, {sellerId:userId}],
     }).sort({createdAt: -1});
+}
+
+// Add this import alongside the existing ones at the top of escrow.service.ts:
+// import { getSubaddressBalance } from "./escrow.wallet.service";
+// (it may already be imported if createEscrow or another function pulls from
+// this file — check before adding a duplicate import line)
+
+export async function getFlaggedEscrows() {
+    const hardCutOff = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    // Cheap DB query first: every WAITING_FOR_PAYMENT escrow old enough to
+    // be past the hard ceiling. This mirrors escrow.cron.ts's own query,
+    // deliberately kept in sync with it — if that cutoff ever changes,
+    // this needs to change too.
+    const candidates = await Escrow.find({
+        state: EscrowState.WAITING_FOR_PAYMENT,
+        updatedAt: { $lte: hardCutOff },
+    });
+
+    // Balance can only be checked live against wallet-rpc, not filtered
+    // in the MongoDB query itself — so we check each candidate individually.
+    // This is the same per-escrow check the cron already does; we're just
+    // surfacing the result instead of acting on it.
+    const flagged = [];
+
+    for (const escrow of candidates) {
+        try {
+            const { balance } = await getSubaddressBalance(
+                escrow.depositAddressIndex
+            );
+
+            if (balance > 0) {
+                flagged.push({
+                    ...escrow.toObject(),
+                    flaggedBalance: balance,
+                });
+            }
+            // balance === 0 candidates are skipped here — those get
+            // auto-expired by the cron on its own, nothing for an admin
+            // to review.
+        } catch (err) {
+            // If we can't even check this one (wallet-rpc down, etc.),
+            // don't silently drop it — surface it as flagged too, since
+            // "we don't know" is not the same as "safe to ignore."
+            flagged.push({
+                ...escrow.toObject(),
+                flaggedBalance: null,
+                checkError: (err as Error).message,
+            });
+        }
+    }
+
+    return flagged;
 }

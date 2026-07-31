@@ -26,6 +26,7 @@ import forumRoutes from './routes/forum.routes';
 import {startEscrowPaymentDetectionJob} from "./escrow/escrow.wallet.cron";
 
 import userRoutes from "./routes/user.routes";
+import supportRoutes from "./routes/support.routes";
 import User from "./models/user.model";
 
 import { error } from "./utils/response";
@@ -70,6 +71,7 @@ app.use("/api/v1/reviews", reviewRoutes);
 app.use("/api/v1/escrow",escrowRoutes);
 app.use("/api/v1/internal/escrow",internalroutes);
 app.use('/api/v1/forum', forumRoutes);
+app.use("/api/v1/support",supportRoutes);
 
 
 

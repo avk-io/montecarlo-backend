@@ -24,7 +24,7 @@ const authMiddleware = (
             userId: string;
         };
 
-        (req as any).user = decoded;
+        req.user = decoded;
         (req as any).userId = decoded.userId;
 
         next();
