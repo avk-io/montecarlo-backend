@@ -80,7 +80,18 @@ const escrowSchema = new Schema<IEscrow>(
       type:String,
       required:false,
       default:null,
-    }
+    },
+
+    releaseAt:{
+      type:Date,
+      default: null,
+    },
+
+    payoutStatus:{
+      type:String,
+      enum: ["PENDING","SENT","HELD","FAILED","NONE"],
+      default: "NONE",
+    },
   },
   {
     timestamps: true,

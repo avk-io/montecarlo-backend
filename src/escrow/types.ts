@@ -30,4 +30,7 @@ export interface EscrowOrder {
 
     state: EscrowState;
     history: HistoryEntry[];
+
+    releaseAt: Date | null;
+    payoutStatus: "NONE" | "PENDING" | "SENT" | "HELD" | "FAILED";
 }

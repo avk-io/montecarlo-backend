@@ -33,11 +33,13 @@ import { error } from "./utils/response";
 import internalAuthMiddleware from "./middleware/internal-auth.middleware";
 import internalroutes from "./escrow/internal.routes";
 import { startEscrowExpiryJob } from "./escrow/escrow.cron";
+import {startEscrowReleaseJob} from "./escrow/escrow.release.cron";
 const app = express();
 
 connectDB();
 startEscrowExpiryJob();
 startEscrowPaymentDetectionJob();
+startEscrowReleaseJob();
 app.use(helmet());
 
 app.use(

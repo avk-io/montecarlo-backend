@@ -24,6 +24,11 @@ export async function createEscrow(
         throw new Error("amount must be greater than zero");
     }
 
+    const MIN_ORDER_AMOUNT_XMR = 0.001;
+
+    if(data.amount<MIN_ORDER_AMOUNT_XMR){
+        throw new Error(`amount too small -minimum order is ${MIN_ORDER_AMOUNT_XMR} XMR (network fees would consume most or all of a smaller payment)`);
+    }
     // Convert XMR -> atomic units at the boundary, once, here. Everything
     // downstream (funding checks, payout) works in atomic units from this
     // point on. Math.round guards against floating point noise (e.g.
@@ -32,6 +37,7 @@ export async function createEscrow(
 
     const label = `escrow-${userId}-${data.sellerId}-${Date.now()}`;
     const { address, addressIndex } = await createEscrowSubaddress(label);
+    
 
     const escrow = await Escrow.create({
         listingId: new mongoose.Types.ObjectId(data.listingId),
