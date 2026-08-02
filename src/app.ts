@@ -93,6 +93,7 @@ app.get(
                 userId: user._id,
                 username: user.username,
                 elo: user.elo,
+                payoutAddress: user.payoutAddress,
             },
         });
     })

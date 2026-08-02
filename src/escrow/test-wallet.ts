@@ -3,8 +3,8 @@ import { transferFunds } from "./escrow.wallet.service";
 async function main() {
     const result = await transferFunds(
         0,
-        "789qqBirGA9ixbtLubsTt7aeBDSwtPqmR6NuPa9772dnFPiegmybBZ1UZpwEKLM5SEYCVUqDTqXX6XMu3quyFXjMHizwaWJ",
-        0.000029
+        "78LJRbF9X6hQN7w8oxxGgeeHzmecfRj8D36iFpm59vdZGedXKBSWx81PomDEKWy13RehA4jN5Kci84ndeDo4bXzgNjsjAB2",
+        1000000000
     );
     console.log("Payment result:", result);
 }
