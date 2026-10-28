@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 
 import { error } from "../utils/response";
+import { env } from "../config/env";
 
 const authMiddleware = (
     req: Request,
@@ -19,7 +20,7 @@ const authMiddleware = (
     try {
         const decoded = jwt.verify(
             accessToken,
-            process.env.ACCESS_TOKEN_SECRET!
+            env.ACCESS_TOKEN_SECRET
         ) as JwtPayload & {
             userId: string;
         };

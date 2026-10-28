@@ -1,10 +1,20 @@
 
+import { env } from "../config/env";
+
+function rpcHeaders(): Record<string, string> {
+    const h: Record<string, string> = { "Content-Type": "application/json" };
+    if (env.MONERO_RPC_USERNAME && env.MONERO_RPC_PASSWORD) {
+        h.Authorization = "Basic " + Buffer.from(`${env.MONERO_RPC_USERNAME}:${env.MONERO_RPC_PASSWORD}`).toString("base64");
+    }
+    return h;
+}
+
 export async function createEscrowSubaddress(label:string): Promise<{address:string;addressIndex:number}>
 {
-   const response =  await fetch("http://127.0.0.1:38083/json_rpc",{
+   const response =  await fetch(env.MONERO_RPC_URL,{
         method: "POST",
         headers: {
-            "Content-Type": "application/json"
+            ...rpcHeaders()
         },
         body: JSON.stringify(
             { "jsonrpc": "2.0",
@@ -34,10 +44,10 @@ export async function createEscrowSubaddress(label:string): Promise<{address:str
 }
 
 export async function getSubaddressBalance(addressIndex: number): Promise<{ balance: number; unlockedBalance: number }>{
-    const response = await fetch("http://127.0.0.1:38083/json_rpc",{
+    const response = await fetch(env.MONERO_RPC_URL,{
         method: "POST",
         headers:{
-            "Content-Type": "application/json"
+            ...rpcHeaders()
         },
         body: JSON.stringify(
             {
@@ -81,9 +91,9 @@ export async function transferFunds(
     toAddress: string,
     amountAtomic: number
 ): Promise<{ txHash: string }> {
-    const response = await fetch("http://127.0.0.1:38083/json_rpc", {
+    const response = await fetch(env.MONERO_RPC_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { ...rpcHeaders() },
         body: JSON.stringify({
             jsonrpc: "2.0",
             id: "0",
@@ -133,9 +143,9 @@ export async function sweepEscrowFunds(
     fromSubaddressIndex: number,
     toAddress: string
 ): Promise<{ txHashes: string[]; amountsSwept: number[] }> {
-    const response = await fetch("http://127.0.0.1:38083/json_rpc", {
+    const response = await fetch(env.MONERO_RPC_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { ...rpcHeaders() },
         body: JSON.stringify({
             jsonrpc: "2.0",
             id: "0",

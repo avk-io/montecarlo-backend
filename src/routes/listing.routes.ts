@@ -2,6 +2,8 @@ import { Router } from "express";
 
 import authMiddleware from "../middleware/auth.middleware";
 import asyncHandler from "../utils/asyncHandler";
+import validate from "../middleware/validate";
+import { createListingSchema } from "../validators/listing.validator";
 
 import {
     getListings,
@@ -19,6 +21,7 @@ router.get("/:id", asyncHandler(getListing));
 router.post(
     "/",
     authMiddleware,
+    validate(createListingSchema),
     asyncHandler(createListing)
 );
 

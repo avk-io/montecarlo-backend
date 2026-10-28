@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-
+import crypto from "node:crypto";
+import { env } from "../config/env";
 import { error } from "../utils/response";
 
 const internalAuthMiddleware = (
@@ -9,16 +10,17 @@ const internalAuthMiddleware = (
 ) => {
     const providedKey = req.headers["x-internal-key"];
 
-    const expectedKey = process.env.INTERNAL_API_KEY;
-
-    if (!expectedKey) {
-        console.error(
-            "INTERNAL_API_KEY is not set in the environment"
-        );
-        return error(res, 500, "Internal auth misconfigured");
+    if (typeof providedKey !== "string") {
+        return error(res, 401, "Invalid internal key");
     }
 
-    if (!providedKey || providedKey !== expectedKey) {
+    const expected = Buffer.from(env.INTERNAL_API_KEY);
+    const provided = Buffer.from(providedKey);
+
+    if (
+        expected.length !== provided.length ||
+        !crypto.timingSafeEqual(expected, provided)
+    ) {
         return error(res, 401, "Invalid internal key");
     }
 

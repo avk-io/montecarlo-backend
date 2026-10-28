@@ -1,6 +1,8 @@
 import { Router } from "express";
 import { createEscrowController, transitionEscrowController, getMyEscrowsController, getEscrowController, getFlaggedEscrowsController } from "./escrow.controller";
 import authMiddleware from "../middleware/auth.middleware";
+import validate from "../middleware/validate";
+import { createEscrowSchema, transitionEscrowSchema } from "../validators/escrow.validator";
 import isAdminMiddleware from "../middleware/isAdmin.middleware";
 import { triggerPayout } from "./escrow.payout.controller";
 
@@ -9,6 +11,7 @@ const router = Router();
 router.post(
   "/",
   authMiddleware,
+  validate(createEscrowSchema),
   createEscrowController
 );
 
@@ -27,6 +30,7 @@ router.get(
 router.patch(
   "/:id/transition",
   authMiddleware,
+  validate(transitionEscrowSchema),
   transitionEscrowController
 );
 

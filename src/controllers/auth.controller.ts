@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import crypto from 'node:crypto';
 import { Request, Response } from 'express';
 import User from '../models/user.model';
+import { env } from '../config/env';
 
 import { success, error } from '../utils/response';
 import asyncHandler from '../utils/asyncHandler';
@@ -43,12 +44,12 @@ export const login = (async (req: Request<{}, {}, AuthBody>, res: Response) => {
 
   const accessToken = jwt.sign(
     { userId: user._id },
-    process.env.ACCESS_TOKEN_SECRET as string,
+    env.ACCESS_TOKEN_SECRET,
     { expiresIn: '15m' }
   );
   const refreshToken = jwt.sign(
     { userId: user._id },
-    process.env.REFRESH_TOKEN_SECRET as string,
+    env.REFRESH_TOKEN_SECRET,
     { expiresIn: '168h' }
   );
 
@@ -68,8 +69,8 @@ export const login = (async (req: Request<{}, {}, AuthBody>, res: Response) => {
 
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+    secure: env.NODE_ENV === 'production',
+    sameSite: env.NODE_ENV === 'production' ? 'none' : 'strict',
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
@@ -87,7 +88,7 @@ export const refresh = (async (req: Request, res: Response) => {
   try {
     decoded = jwt.verify(
       refreshToken,
-      process.env.REFRESH_TOKEN_SECRET as string
+      env.REFRESH_TOKEN_SECRET
     ) as RefreshTokenPayload;
   } catch {
     return error(res, 401, 'Invalid/Expired refresh token');
@@ -119,7 +120,7 @@ export const refresh = (async (req: Request, res: Response) => {
   // Rotate refresh token
   const newRefreshToken = jwt.sign(
     { userId: user._id },
-    process.env.REFRESH_TOKEN_SECRET as string,
+    env.REFRESH_TOKEN_SECRET,
     { expiresIn: '168h' }
   );
 
@@ -140,14 +141,14 @@ export const refresh = (async (req: Request, res: Response) => {
 
   res.cookie('refreshToken', newRefreshToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+    secure: env.NODE_ENV === 'production',
+    sameSite: env.NODE_ENV === 'production' ? 'none' : 'strict',
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
   const accessToken = jwt.sign(
     { userId: user._id },
-    process.env.ACCESS_TOKEN_SECRET as string,
+    env.ACCESS_TOKEN_SECRET,
     { expiresIn: '15m' }
   );
 
@@ -166,7 +167,7 @@ export const logout = (async (req: Request, res: Response) => {
   try {
     decoded = jwt.verify(
       refreshToken,
-      process.env.REFRESH_TOKEN_SECRET as string
+      env.REFRESH_TOKEN_SECRET
     ) as RefreshTokenPayload;
   } catch {
     return success(res, { msg: 'Logged Out' });
@@ -182,8 +183,8 @@ export const logout = (async (req: Request, res: Response) => {
 
   res.clearCookie('refreshToken', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+    secure: env.NODE_ENV === 'production',
+    sameSite: env.NODE_ENV === 'production' ? 'none' : 'strict',
   });
 
   return success(res, { msg: 'Logged Out' });

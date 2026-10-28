@@ -7,10 +7,12 @@ import {
 } from "../controllers/review.controller";
 
 import auth from "../middleware/auth.middleware";
+import validate from "../middleware/validate";
+import { createReviewSchema } from "../validators/review.validator";
 
 const router = Router();
 
-router.post("/", auth, createReview);
+router.post("/", auth, validate(createReviewSchema), createReview);
 
 router.get("/seller/:sellerId", getReviewsForSeller);
 

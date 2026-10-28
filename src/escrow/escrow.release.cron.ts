@@ -3,6 +3,7 @@ import Escrow from "./escrow.model";
 import { EscrowState } from "./state";
 import { Actor } from "./actor";
 import { transitionEscrowInternal } from "./escrow.service";
+import { executePayout } from "./escrow.payout.service";
 
 export function startEscrowReleaseJob() {
     cron.schedule("*/5 * * * *", async () => {
@@ -16,6 +17,8 @@ export function startEscrowReleaseJob() {
             });
 
             let released = 0;
+            let paidOut = 0;
+            let payoutFailed = 0;
             let failed = 0;
 
             for (const escrow of escrows) {
@@ -26,6 +29,24 @@ export function startEscrowReleaseJob() {
                         EscrowState.RELEASED
                     );
                     released++;
+
+                    // Immediately attempt payout now that the order is
+                    // RELEASED. This is a separate try/catch from the
+                    // transition above on purpose: if the transition
+                    // succeeded but payout fails (wallet-rpc down, no
+                    // payout address, etc.), the order should stay
+                    // correctly RELEASED rather than getting rolled back
+                    // or blocked — it just needs a retry on payout later.
+                    try {
+                        await executePayout(escrow._id.toString());
+                        paidOut++;
+                    } catch (payoutErr) {
+                        payoutFailed++;
+                        console.error(
+                            `[EscrowReleaseJob] Released escrow ${escrow._id} but payout failed:`,
+                            payoutErr
+                        );
+                    }
                 } catch (err) {
                     failed++;
                     console.error(
@@ -36,7 +57,7 @@ export function startEscrowReleaseJob() {
             }
 
             console.log(
-                `[EscrowReleaseJob] Sweep complete. Checked=${escrows.length}, Released=${released}, Failed=${failed}`
+                `[EscrowReleaseJob] Sweep complete. Checked=${escrows.length}, Released=${released}, PaidOut=${paidOut}, PayoutFailed=${payoutFailed}, Failed=${failed}`
             );
         } catch (err) {
             console.error(

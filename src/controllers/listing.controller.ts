@@ -35,7 +35,7 @@ export const createListing = async (req: AuthRequest, res: Response) => {
   try {
     const { title, description, price, category, image } = req.body;
 
-    if (!title || !description || !price || !category) {
+    if (!title || !description || price == null || !category) {
       return error(res, 400, 'Missing required fields');
     }
 

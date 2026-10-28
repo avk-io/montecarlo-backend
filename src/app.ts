@@ -1,5 +1,4 @@
-import dotenv from "dotenv";
-dotenv.config();
+import { env, corsOrigins } from "./config/env";
 
 import express, {
     Request,
@@ -28,6 +27,7 @@ import {startEscrowPaymentDetectionJob} from "./escrow/escrow.wallet.cron";
 import userRoutes from "./routes/user.routes";
 import supportRoutes from "./routes/support.routes";
 import User from "./models/user.model";
+import auctionRoutes from "./routes/auction.routes";
 
 import { error } from "./utils/response";
 import internalAuthMiddleware from "./middleware/internal-auth.middleware";
@@ -44,12 +44,14 @@ app.use(helmet());
 
 app.use(
     cors({
-        origin: process.env.CLIENT_URL || "http://localhost:3000",
+        origin: corsOrigins(),
         credentials: true,
     })
 );
 
 app.use(morgan("dev"));
+const globalLimiter = rateLimit({ windowMs: 15*60*1000, max: 1000, standardHeaders: true, legacyHeaders: false });
+app.use(globalLimiter);
 app.use(express.json());
 app.use(cookieParser());
 app.use("/api/v1/users",userRoutes);
@@ -74,7 +76,7 @@ app.use("/api/v1/escrow",escrowRoutes);
 app.use("/api/v1/internal/escrow",internalroutes);
 app.use('/api/v1/forum', forumRoutes);
 app.use("/api/v1/support",supportRoutes);
-
+app.use("/api/v1/auctions",auctionRoutes);
 
 
 app.get(
@@ -112,16 +114,27 @@ app.use(
     ) => {
         console.error(err);
 
+        const message = (err && err.statusCode && err.statusCode < 500) ? err.message : (process.env.NODE_ENV === "production" ? "Internal Server Error" : (err?.message || "Internal Server Error"));
         return error(
             res,
-            err.statusCode || 500,
-            err.message || "Internal Server Error"
+            err?.statusCode || 500,
+            message
         );
     }
 );
 
-const PORT = process.env.PORT || 3000;
+const PORT = env.PORT;
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
+
+const shutdown = (signal: string) => {
+    console.log(`${signal} received, shutting down gracefully`);
+    server.close(() => {
+        process.exit(0);
+    });
+    setTimeout(() => process.exit(1), 10000).unref();
+};
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));
